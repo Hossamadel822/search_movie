@@ -11,7 +11,7 @@ class ApiManager {
   static const String language = 'en-US';
   static const String page = '1';
 
-  static Future<MovieName> getMovieName(int movieId) async {
+  static Future<MovieResponse> getMovieResponse(int movieId) async {
     Uri url = Uri.https(
       baseUrl,
       '${EndPoints.details}/$movieId/similar',
@@ -26,7 +26,7 @@ class ApiManager {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         var bodyString = response.body;
         var json = jsonDecode(bodyString);
-        return MovieName.fromJson(json);
+        return MovieResponse.fromJson(json);
       } else {
         throw Exception(
             'Failed to load similar movies: ${response.statusCode}');

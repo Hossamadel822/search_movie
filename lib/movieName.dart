@@ -1,12 +1,12 @@
-class MovieName {
-  MovieName({
+class MovieResponse {
+  MovieResponse({
     this.page,
     this.results,
     this.totalPages,
     this.totalResults,
   });
 
-  MovieName.fromJson(dynamic json) {
+  MovieResponse.fromJson(dynamic json) {
     page = json['page'];
     if (json['results'] != null) {
       results = [];
@@ -51,6 +51,8 @@ class Results {
     this.video,
     this.voteAverage,
     this.voteCount,
+    this.message,
+    this.status_message,
   });
 
   Results.fromJson(dynamic json) {
@@ -66,6 +68,8 @@ class Results {
     releaseDate = json['release_date'];
     title = json['title'];
     video = json['video'];
+    message = json['message'];
+    status_message = json['status_message'];
     voteAverage = json['vote_average'];
     voteCount = json['vote_count'];
   }
@@ -84,6 +88,8 @@ class Results {
   bool? video;
   num? voteAverage;
   num? voteCount;
+  String? message;
+  String? status_message;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

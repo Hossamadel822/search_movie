@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:new_search/api_manager.dart';
+import 'package:new_search/movieName.dart';
 
 import 'MovieDetailsScreen.dart';
+import 'cubit/movie_cubit.dart';
+import 'cubit/movie_states.dart';
 
 class Movie {
   final String title;
@@ -17,6 +22,7 @@ class Movie {
 }
 
 class MovieSearchScreen extends StatefulWidget {
+  MovieDetailsViewModel viewModel = MovieDetailsViewModel();
   @override
   _MovieSearchScreenState createState() => _MovieSearchScreenState();
 }
@@ -144,56 +150,62 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Movie Search'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(30),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search...',
-                  border: InputBorder.none,
-                  icon: Icon(Icons.search, color: Colors.white),
+    return BlocBuilder<MovieDetailsViewModel, MovieDetailsStates>(
+      bloc: viewModel,
+      builder: (context, state) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Movie Search'),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search...',
+                      border: InputBorder.none,
+                      icon: Icon(Icons.search, color: Colors.white),
+                    ),
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
-                style: TextStyle(color: Colors.white),
-              ),
+                SizedBox(height: 10),
+                Expanded(
+                  child: _filteredMovies.isNotEmpty
+                      ? ListView.builder(
+                    itemCount: _filteredMovies.length,
+                    itemBuilder: (context, index) {
+                      Movie movie = _filteredMovies[index];
+                      return ListTile(
+                        leading: Image.asset(
+                          movie.imageUrl,
+                          width: 50,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ),
+                        title: Text(movie.title),
+                        subtitle: Text('${movie.year}\n${movie.actors}'),
+                        isThreeLine: true,
+                        onTap: () => _navigateToMovieDetails(movie),
+                      );
+                    },
+                  )
+                      : Center(child: Text('No movies found')),
+                ),
+              ],
             ),
-            SizedBox(height: 10),
-            Expanded(
-              child: _filteredMovies.isNotEmpty
-                  ? ListView.builder(
-                      itemCount: _filteredMovies.length,
-                      itemBuilder: (context, index) {
-                        Movie movie = _filteredMovies[index];
-                        return ListTile(
-                          leading: Image.asset(
-                            movie.imageUrl,
-                            width: 50,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
-                          title: Text(movie.title),
-                          subtitle: Text('${movie.year}\n${movie.actors}'),
-                          isThreeLine: true,
-                          onTap: () => _navigateToMovieDetails(movie),
-                        );
-                      },
-                    )
-                  : Center(child: Text('No movies found')),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
+
     );
   }
 }
