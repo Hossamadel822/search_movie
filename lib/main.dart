@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         // Dark theme like the image
       ),
-      home: MovieSearchScreen(),
+      home: Search(),
     );
   }
 }

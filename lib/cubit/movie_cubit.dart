@@ -1,30 +1,20 @@
+import '../movieName.dart';
+import 'failures.dart';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
+abstract class searchStates {}
 
-import '../api_manager.dart';
-import 'movie_states.dart';
+class SearchStatesInitial extends searchStates {}
 
+class SearchStatesLoading extends searchStates {}
 
-class MovieDetailsViewModel extends Cubit<MovieDetailsStates> {
-  MovieDetailsViewModel() : super(MovieDetailsInitialState());
+class SearchStatesSuccess extends searchStates {
+  MovieResponse SearchResponse;
 
-  void getAllDetails(int movieId) async {
-    emit(MovieDetailsLoadingState());
-    try {
-      final movieDetails = await ApiManager.getMovieResponse(movieId);
-      emit(MovieDetailsSuccessState(details: movieDetails));
-    } catch (e) {
-      emit(MovieDetailsErrorState("An error occurred: $e"));
-    }
-  }
+  SearchStatesSuccess({required this.SearchResponse});
+}
 
-  void getAllSimilarDetails(int movieId) async {
-    emit(MovieDetailsLoadingState());
-    try {
-      final similarDetails = await ApiManager.getMovieResponse(movieId);
-      emit(MovieSimilarDetailsSuccessState(details: similarDetails));
-    } catch (e) {
-      emit(MovieDetailsErrorState("An error occurred: $e"));
-    }
-  }
+class SearchStatesError extends searchStates {
+  Failure failure;
+
+  SearchStatesError({required this.failure});
 }

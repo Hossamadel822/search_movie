@@ -1,211 +1,141 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:new_search/api_manager.dart';
+import 'package:http/http.dart' as http;
 import 'package:new_search/movieName.dart';
 
-import 'MovieDetailsScreen.dart';
-import 'cubit/movie_cubit.dart';
-import 'cubit/movie_states.dart';
+import 'cubit/movie_card.dart';
 
-class Movie {
-  final String title;
-  final String year;
-  final String actors;
-  final String imageUrl;
-
-  Movie({
-    required this.title,
-    required this.year,
-    required this.actors,
-    required this.imageUrl,
-  });
+class Search extends StatefulWidget {
+  static const String routeName = 'search';
+  @override
+  _SearchState createState() => _SearchState();
 }
 
-class MovieSearchScreen extends StatefulWidget {
-  MovieDetailsViewModel viewModel = MovieDetailsViewModel();
-  @override
-  _MovieSearchScreenState createState() => _MovieSearchScreenState();
-}
+class _SearchState extends State<Search> {
+  String _searchText = "";
+  List<Results> _searchResults = [];
+  bool _isLoading = false;
 
-class _MovieSearchScreenState extends State<MovieSearchScreen> {
-  TextEditingController _searchController = TextEditingController();
-  List<Movie> _allMovies = [
-    Movie(
-      title: 'Alita Battle Angel',
-      year: '2019',
-      actors: 'Rosa Salazar, Christoph Waltz',
-      imageUrl: 'asset/Alita Battle Angel.jpg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-    Movie(
-      title: 'Deadpool 2',
-      year: '2018',
-      actors: 'Ryan Reynolds, Josh Brolin',
-      imageUrl: 'asset/deadpool2.jpeg',
-    ),
-  ];
-  List<Movie> _filteredMovies = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _filteredMovies = _allMovies;
-    _searchController.addListener(_filterMovies);
-  }
-
-  void _filterMovies() {
+  void _onSearch(String text) {
     setState(() {
-      String query = _searchController.text.toLowerCase();
-      _filteredMovies = _allMovies.where((movie) {
-        return movie.title.toLowerCase().contains(query);
-      }).toList();
+      _searchText = text;
     });
+    _searchMovies(text);
   }
 
-  void _navigateToMovieDetails(Movie movie) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MovieDetailsScreen(movie: movie),
-      ),
-    );
-  }
+  Future<void> _searchMovies(String query) async {
+    setState(() {
+      _isLoading = true;
+    });
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+    final apiKey = "092d1e0bb1cb68908930364d656c5a41";
+    final url = Uri.parse(
+        "https://api.themoviedb.org/3/configuration=$apiKey&query=$query");
+
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final searchResponse = MovieResponse();
+
+      setState(() {
+        _searchResults = searchResponse.results ?? [];
+        _isLoading = false;
+      });
+    } else {
+      print("Failed to fetch movies: ${response.statusCode}");
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MovieDetailsViewModel, MovieDetailsStates>(
-      bloc: viewModel,
-      builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('Movie Search'),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[800],
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search...',
-                      border: InputBorder.none,
-                      icon: Icon(Icons.search, color: Colors.white),
-                    ),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                SizedBox(height: 10),
-                Expanded(
-                  child: _filteredMovies.isNotEmpty
-                      ? ListView.builder(
-                    itemCount: _filteredMovies.length,
-                    itemBuilder: (context, index) {
-                      Movie movie = _filteredMovies[index];
-                      return ListTile(
-                        leading: Image.asset(
-                          movie.imageUrl,
-                          width: 50,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                        title: Text(movie.title),
-                        subtitle: Text('${movie.year}\n${movie.actors}'),
-                        isThreeLine: true,
-                        onTap: () => _navigateToMovieDetails(movie),
-                      );
-                    },
-                  )
-                      : Center(child: Text('No movies found')),
-                ),
-              ],
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.black,
+        body: Column(
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 30.0, vertical: 50.0),
+              child: SearchBar(onSearch: _onSearch),
             ),
-          ),
-        );
-      },
+            Expanded(
+              child: _isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : _searchText.isEmpty
+                      ? Center(child: NoMoviesFound())
+                      : _searchResults.isEmpty
+                          ? Center(
+                              child: NoMoviesFound(text: 'No results found'))
+                          : ListView.builder(
+                              itemCount: _searchResults.length,
+                              itemBuilder: (context, index) {
+                                final movie = _searchResults[index];
+                                return MovieCard(movie: movie);
+                              },
+                            ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
+class SearchBar extends StatelessWidget {
+  final Function(String) onSearch;
+
+  const SearchBar({Key? key, required this.onSearch}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      onChanged: (text) => onSearch(text),
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: 'Search',
+        hintStyle: const TextStyle(color: Colors.blue),
+        prefixIcon: const Icon(Icons.search, color: Colors.blue),
+        filled: true,
+        fillColor: Colors.grey[800],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30.0),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+}
+
+class NoMoviesFound extends StatelessWidget {
+  final String text;
+
+  const NoMoviesFound({Key? key, this.text = 'No movies found'})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.local_movies,
+          size: 100,
+          color: Colors.blue,
+        ),
+        SizedBox(height: 20),
+        Text(
+          text,
+          style: TextStyle(
+            color: Colors.blue,
+            fontSize: 18,
+          ),
+        ),
+      ],
     );
   }
 }
